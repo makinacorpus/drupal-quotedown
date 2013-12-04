@@ -6,11 +6,6 @@
  */
 
 /**
- * Watchdog entries key.
- */
-const QUOTEDOWN_WATCHDOG = 'quotedown';
-
-/**
  * PageDown field widget key.
  */
 const QUOTEDOWN_WIDGET_PAGEDOWN = 'pagedown';
