@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ * Install and uninstall.
+ *
+ * Note this module intentionnaly leaves the input format behind when
+ * it is being uninstalled: any text already inputed with it must keep
+ * the reference to old format even if the mardown filter is not present
+ * anymore. At the very least it lives the site integrator the choice of
+ * migrating the data or remove the format by himself.
+ */
+
+/**
+ * Adds the 'markdown' filter.
+ */
+function quotedown_install_filter() {
+  $format = (object)array(
+    'format'  => 'qmarkdown',
+    'name'    => "Markdown",
+    'status'  => 1,
+    'filters' => array(
+      'qmarkdown' => array(
+        'status'   => 1,
+        'settings' => array(),
+        'weight'   => -20,
+      ),
+      'filter_html' => array(
+        'status'   => 1,
+        'settings' => array(
+          'filter_html' => "<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <img> <del>",
+        ),
+        'weight'   => -10,
+      ),
+      'filter_url' => array(
+        'status'   => 1,
+        'settings' => array(),
+        'weight'   => 10,
+      ),
+      'smiley' => array( // If module "smiley" is present; Else inactive.
+        'status'   => 1,
+        'settings' => array(),
+        'weight'   => 20,
+      ),
+      'filter_htmlcorrector' => array( // This one is important for security.
+        'status'   => 1,
+        'settings' => array(),
+        'weight'   => 30,
+      ),
+    ),
+  );
+  filter_format_save($format);
+
+  // This filter should be safe enough for everyone and will be used per
+  // default in many cases so let's ensure everyone can use it.
+  drupal_static_reset('user_access');
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array("use text format qmarkdown"));
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array("use text format qmarkdown"));
+}
+
+/**
+ * Implements hook_install().
+ */
+function quotedown_install() {
+  quotedown_install_filter();
+}

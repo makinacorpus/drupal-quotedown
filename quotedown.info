@@ -1,0 +1,7 @@
+name = QuoteDown
+description = "Markdown filter, PageDown editor and various user input recreational tools"
+core = 7.x
+package = User interface
+php = 5.3
+version = 7.x-1.0
+autoload[psr-0][Michelf] = lib

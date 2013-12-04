@@ -1,0 +1,308 @@
+<?php
+
+/**
+ * @file
+ * QuoteDown module.
+ */
+
+/**
+ * Watchdog entries key.
+ */
+const QUOTEDOWN_WATCHDOG = 'quotedown';
+
+/**
+ * PageDown field widget key.
+ */
+const QUOTEDOWN_WIDGET_PAGEDOWN = 'pagedown';
+
+/**
+ * Implements hook_theme().
+ */
+function quotedown_theme() {
+  return array('pagedown' => array('render element' => 'element'));
+}
+
+/**
+ * Implements hook_comment_view_alter().
+ */
+function quotedown_comment_view_alter(&$build) {
+
+  // There is somewhere in Drupal ecosystem a "quote" module.
+  // Just remove it from there.
+  unset($build['links']['quote']);
+
+  // Add the magic quote link, ouyé!
+  $id = uniqid("quote-", true);
+  $build['links']['comment']['#links']['magiquote'] = array(
+    'title'      => t("Quote"),
+    'href'       => '#',
+    'html'       => false,
+    'attributes' => array(
+      'class' => array('magiquote'),
+      'rel'   => $id,
+    ),
+  );
+
+  // Suboptimal I sure hope the account is preloaded elsewhere.
+  $account = user_load($build['#comment']->uid);
+  $date = $build['#comment']->created;
+  $build['comment_body']['#attributes']['id'] = $id;
+  // Title will serve for JS to put a header before quote.
+  $build['comment_body']['#attributes']['title'] = t("On @date, @account said", array(
+    '@date'    => format_date($date),
+    '@account' => format_username($account),
+  ));
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function quotedown_preprocess_field(&$variables) {
+  if (!empty($variables['element']['#attributes'])) {
+    if (empty($variables['attributes_array'])) {
+      $variables['attributes_array'] = $variables['element']['#attributes'];
+    } else{
+      $variables['attributes_array'] = drupal_array_merge_deep($variables['element']['#attributes'], $variables['attributes_array']);
+    }
+  }
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function quotedown_page_build(&$page) {
+  drupal_add_library('quotedown', 'jquery.magitext', true);
+  drupal_add_library('quotedown', 'quotedown', true);
+}
+
+/**
+ * Implements hook_library().
+ */
+function quotedown_library() {
+  $path = drupal_get_path('module', 'quotedown') . '/js';
+  $opts = array('weight' => 3);
+  return array(
+    'jquery.compat' => array(
+      'title' => "jQuery Compat",
+      'title' => "jQuery 1.7 bits for 1.4 and jQuery.autoresize",
+      'version' => '0.1',
+      'website' => "http://github.com/makinacorpus/drupal-quotedown",
+      'js' => array(
+        $path . '/jquery.compat.js' => $opts,
+      ),
+    ),
+    'jquery.autosize' => array(
+      'title' => "jQuery Autosize",
+      'version' => '1.18.1',
+      'website' => "http://www.jacklmoore.com/autosize",
+      'js' => array(
+        $path . '/jquery.autosize-1.18.1.min.js' => $opts,
+      ),
+      'dependencies' => array(
+        array('quotedown', 'jquery.compat'),
+      ),
+    ),
+    'pagedown' => array(
+      'title' => "PageDown",
+      'version' => '0.1',
+      'website' => "http://code.google.com/p/pagedown",
+      'js' => array(
+        $path . '/pagedown/Markdown.Converter.js' => $opts,
+        $path . '/pagedown/Markdown.Sanitizer.js' => $opts,
+        $path . '/pagedown/Markdown.Editor.js'    => $opts,
+      ),
+      'css' => array(
+        $path . '/pagedown/demo/browser/demo.css' => $opts,
+      ),
+    ),
+    'jquery.magitext' => array(
+      'title' => "jQuery Magitext",
+      'version' => '0.1',
+      'website' => "http://github.com/makinacorpus/drupal-quotedown",
+      'js' => array(
+        $path . '/jquery.magitext.js' => $opts,
+      ),
+      'dependencies' => array(
+        array('quotedown', 'jquery.autosize'),
+        array('quotedown', 'pagedown'),
+      ),
+    ),
+    'quotedown' => array(
+      'title' => "QuoteDown",
+      'version' => '0.1',
+      'website' => "http://github.com/makinacorpus/drupal-quotedown",
+      'js' => array(
+        $path . '/quotedown.js' => $opts,
+      ),
+      'dependencies' => array(
+        array('quotedown', 'pagedown'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_filter_info().
+ */
+function quotedown_filter_info() {
+  return array(
+    'qmarkdown' => array(
+      'title'            => t('Markdown'),
+      'description'      => t('Markdown text will be formatted as HTML.'),
+      'process callback' => 'quotedown_filter_process_qmarkdown',
+    ),
+  );
+}
+
+/**
+ * Filter process callback.
+ */
+function quotedown_filter_process_qmarkdown($text, $format) {
+  if (!empty($text)) {
+    if (!class_exists('\Michelf\Markdown')) {
+      // You should use the autoloader module instead.
+      // http://github.com/makinacorpus/drupal-autoloader
+      require_once __DIR__ . 'lib/Michelf/Markdown';
+    }
+    $m = new \Michelf\Markdown();
+    return $m->transform($text);
+  }
+  return $text;
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function quotedown_element_info_alter(&$type) {
+  $default = array(
+    // Set this to false to deactivate the magitext behavior.
+    '#magitext' => true,
+    // Set this to true will activate the pagedown editor.
+    '#pagedown' => false,
+  );
+  if (isset($type['text_format'])) {
+    $type['text_format'] += $default;
+    // This is a default safe behavior: force our input format that
+    // will handle markdown seamlessly. If any user wants to force
+    // his own format he just can set #forceformat to false on his
+    // element instance.
+    $type['text_format']['#forceformat'] = 'qmarkdown';
+    // Preprocess will override the format and let the filter module
+    // do whatever it has to do with while postprocess will alter the
+    // widget and set some options of us to the inside textarea. This
+    // avoid element ordering to messed up.
+    array_unshift($type['text_format']['#process'], 'quotedown_element_preprocess_text_format');
+    $type['text_format']['#process'][] = 'quotedown_element_process_text_format';
+  }
+  if (isset($type['textarea'])) {
+    $type['textarea'] += $default;
+    $type['textarea']['#process'][] = 'quotedown_element_process_textarea';
+  }
+}
+
+/**
+ * Processes 'text_format' elements.
+ */
+function quotedown_element_preprocess_text_format($element) {
+  if (!empty($element['#forceformat'])) {
+    $element['#format'] = $element['#forceformat'];
+  }
+  return $element;
+}
+
+/**
+ * Processes 'text_format' elements.
+ */
+function quotedown_element_process_text_format($element) {
+  if (!empty($element['#forceformat'])) {
+    $element['format']['format']['#access'] = false;
+    $element['format']['guidelines']['#access'] = false;
+    $element['value']['#pagedown'] = $element['#pagedown'];
+    $element['value']['#magitext'] = $element['#magitext'];
+  }
+  return $element;
+}
+
+/**
+ * Processes 'textarea' elements.
+ */
+function quotedown_element_process_textarea($element) {
+  static $id = 0;
+
+  if ($element['#magitext']) {
+    $element['#rows'] = 2;
+    $element['#resizable'] = false;
+    $element['#attributes']['class'][] = "magitext";
+  }
+
+  if ($element['#pagedown']) {
+    $currentId = ++$id;
+    $element['#id'] = 'wmd-input-' . $currentId;
+    $element['#postfix'] = $currentId;
+    $element['#attached']['js'][] = array(
+      'data' => array('pageDown' => array($currentId)),
+      'type' => 'setting',
+    );
+    $element['#attributes']['class'][] = 'wmd-input';
+    $element['#theme'] = 'pagedown';
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function quotedown_field_widget_info() {
+  return array(
+    QUOTEDOWN_WIDGET_PAGEDOWN => array(
+      'label'       => t("PageDown editor"),
+      'settings'    => array('format' => 'qmarkdown'),
+      'description' => t("Uses the PageDown MarkDown editor on a simple textarea."),
+      'field types' => array('text', 'text_long', 'text_with_summary'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function quotedown_field_widget_form(
+  &$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element)
+{
+  switch ($instance['widget']['type']) {
+
+    case QUOTEDOWN_WIDGET_PAGEDOWN:
+      $element['#type'] = 'text_format';
+      $element['#magitext'] = true;
+      $element['#pagedown'] = true;
+      $element['#default_value'] = isset($items[$delta]['value']) ? $items[$delta]['value'] : null;
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Theme a pagedown form element.
+ * Slightly modified version of theme_textarea().
+ */
+function theme_pagedown($variables) {
+  $element = $variables['element'];
+  $currentId = $element['#postfix'];
+
+  element_set_attributes($element, array('id', 'name', 'cols', 'rows'));
+  _form_set_class($element, array('form-textarea'));
+  $wrapper_attributes = array(
+    'class' => array('form-textarea-wrapper', 'wmd-panel'),
+    'id' => 'wmd-panel-' . $currentId,
+  );
+
+  $output = '<div' . drupal_attributes($wrapper_attributes) . '>';
+  $output .= '<div class="wmd-button-bar" id="wmd-button-bar-' . $currentId . '"></div>';
+  $output .= '<textarea' . drupal_attributes($element['#attributes']) . '>' . check_plain($element['#value']) . '</textarea>';
+  $output .= '<div class="wmd-panel wmd-preview" id="wmd-preview-' . $currentId . '"></div>';
+  $output .= '</div>';
+
+  return $output;
+}
