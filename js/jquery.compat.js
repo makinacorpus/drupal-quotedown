@@ -1,3 +1,5 @@
+/*jslint browser: true, todo: true, indent: 2 */
+/*global jQuery */
 /**
  * Brings a few missing functions that were added into jQuery 1.7 to previous
  * versions; Those functions are actually the most used ones and are sufficient
@@ -13,15 +15,23 @@
  */
 (function ($) {
   "use strict";
-  var returnFalse = function () {
-    return false;
-  };
-  $.extend({
-    isNumeric: function (value) {
-      return "number" === typeof parseInt(value, 10);
-    }
-  });
-  $.fn.extend({
+
+  var
+    k = 0,
+    missing = {},
+    returnFalse = function () {
+      return false;
+    };
+
+  if (!$.isNumeric) {
+    $.extend({
+      isNumeric: function (value) {
+        return "number" === typeof parseInt(value, 10);
+      }
+    });
+  }
+
+  missing = {
     on: function (types, selector, data, fn) {
       var type;
       // Decal parameters if selector is not a string
@@ -54,7 +64,7 @@
         }
         return this;
       } else {
-        return this.each(function() {
+        return this.each(function () {
           if (selector) {
             if (data) {
               $(this).find(selector).bind(types, data, fn);
@@ -71,5 +81,16 @@
         });
       }
     }
-  });
+  };
+
+  for (k in missing) {
+    if (missing.hasOwnProperty(k)) {
+      if ($.fn[k]) {
+        delete missing[k];
+      }
+    }
+  }
+
+  $.fn.extend(missing);
+
 }(jQuery));
