@@ -61,14 +61,22 @@ to all textareas Drupal will spawn.
 All the rules for the *textarea* element type are true for the *text_format*
 element type. Plus:
 
- *  Per default all elements are altered to use the *qmarkdown* input
-    filter (forced pragmatically) and format choice is being hidden.
+ *  Per default they will inherit from *textarea* type defaults explained
+    in the previous paragraph.
+
+ *  Per default when you add the *#pagedown* property the element is altered
+    to use the *qmarkdown* input filter (forced pragmatically) and format
+    choice is being hidden.
 
  *  Change the value of the *#forceformat* key to *false* will disable
-    the default alteration.
+    the default filter format alteration explained upper; Use this only
+    if you want to build your own filter format or another Mardown parser.
+    Any other user should not mess with this.
 
  *  Change the value of the *#forceformat* key to any known filter format
     identifier will reproduce the default behavior using this filter format.
+    Same notice applies as the previous entry, non advanced users should not
+    change this behavior.
 
 #### Working with quotation
 

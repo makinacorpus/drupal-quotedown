@@ -201,7 +201,7 @@ function quotedown_element_info_alter(&$type) {
 }
 
 /**
- * Processes 'text_format' elements.
+ * Preprocesses 'text_format' elements.
  */
 function quotedown_element_preprocess_text_format($element) {
   if (!empty($element['#forceformat'])) {
@@ -214,12 +214,12 @@ function quotedown_element_preprocess_text_format($element) {
  * Processes 'text_format' elements.
  */
 function quotedown_element_process_text_format($element) {
-  if (!empty($element['#forceformat'])) {
+  if ($element['#pagedown'] && !empty($element['#forceformat'])) {
     $element['format']['format']['#access'] = false;
     $element['format']['guidelines']['#access'] = false;
-    $element['value']['#pagedown'] = $element['#pagedown'];
-    $element['value']['#magitext'] = $element['#magitext'];
   }
+  $element['value']['#pagedown'] = $element['#pagedown'];
+  $element['value']['#magitext'] = $element['#magitext'];
   return $element;
 }
 
