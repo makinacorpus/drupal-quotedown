@@ -14,7 +14,7 @@
 /**
  * Adds the 'markdown' filter.
  */
-function quotedown_install_filter() {
+function quotedown_install_filter($permissions = false) {
   $format = (object)array(
     'format'  => 'qmarkdown',
     'name'    => "Markdown",
@@ -25,10 +25,10 @@ function quotedown_install_filter() {
         'settings' => array(),
         'weight'   => -20,
       ),
-      'filter_html' => array(
+      'allowed_html' => array(
         'status'   => 1,
         'settings' => array(
-          'filter_html' => "<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <img> <del>",
+          'filter_html' => "<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <img> <del> <p> <br> <h1> <h2> <h3> <h4> <h5> <h6> <table> <td> <tr> <th> <thead> <tbody> <pre> <div>",
         ),
         'weight'   => -10,
       ),
@@ -51,16 +51,25 @@ function quotedown_install_filter() {
   );
   filter_format_save($format);
 
-  // This filter should be safe enough for everyone and will be used per
-  // default in many cases so let's ensure everyone can use it.
-  drupal_static_reset('user_access');
-  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array("use text format qmarkdown"));
-  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array("use text format qmarkdown"));
+  if ($permissions) {
+    // This filter should be safe enough for everyone and will be used per
+    // default in many cases so let's ensure everyone can use it.
+    drupal_static_reset('user_access');
+    user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array("use text format qmarkdown"));
+    user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array("use text format qmarkdown"));
+  }
 }
 
 /**
  * Implements hook_install().
  */
 function quotedown_install() {
+  quotedown_install_filter(true);
+}
+
+/**
+ * Adds some forgotten HTML tags breaking HTML rendering of Markdown.
+ */
+function quotedown_update_7002() {
   quotedown_install_filter();
 }
