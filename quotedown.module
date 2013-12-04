@@ -162,7 +162,7 @@ function quotedown_filter_process_qmarkdown($text, $format) {
     if (!class_exists('\Michelf\Markdown')) {
       // You should use the autoloader module instead.
       // http://github.com/makinacorpus/drupal-autoloader
-      require_once __DIR__ . 'lib/Michelf/Markdown';
+      require_once __DIR__ . '/lib/Michelf/Markdown.inc.php';
     }
     $m = new \Michelf\Markdown();
     return $m->transform($text);
