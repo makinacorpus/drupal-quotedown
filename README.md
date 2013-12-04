@@ -4,14 +4,15 @@ This Drupal module brings content and comment editing features:
 
  *  Brings a **MarkDown text filter**: the existing 
     [*Markdown* module](http://drupal.org/project/markdown) uses an
-    outdated PHP library; This modules uses the same but up-to-date;
+    outdated PHP library; This module uses the same but up-to-date;
 
- *  Brings the **PageDown editor** (*StackOverflow*'s MarkDown editor)
-    as a **field formatter** and a single **form element**;
+ *  Brings the [**PageDown editor**](http://code.google.com/p/pagedown)
+    (*StackOverflow*'s Markdown editor) as a **field formatter** and a
+    single **form element**;
 
  *  Adds a **quotation feature for comments and forums**; Fully JavaScript
     driven it cleans up any text and paste it into the currently active
-    editor as a well formed MarkDown blockquote;
+    editor as a well formed Markdown blockquote;
 
  *  Brings **jQuery.autosize** plugin for textarea elements autosizing
     depending on content: this plugin is not supposed to work with jQuery
@@ -23,22 +24,53 @@ This Drupal module brings content and comment editing features:
 ### For users
 
 Enable the module and configure your fields with the *PageDown editor*
-field formatter. That should be enough. Note that your users must have
-the permission to use the *quotedown* filter format.
+field formatter. That should be enough.
 
 This filter format can be changed manually; Just avoid to remove the
-*MarkDown* filter or it won't work as expected anymore.
+*Markdown* filter or it won't work as expected anymore.
 
 It is very important to understand that by definition Markdown allow
 users to plug fullon HTML into their Markdown content, and won't filter
-it: that's why the *quotedown* pre-configured filter format is provided
-with this module.
+it: that's why the *qmarkdown* pre-configured filter format is provided
+with this module and forced to be the default whenever a textarea is being
+altered.
 
 ### For developers and integrators
 
-The various behaviors on textareas will be automatically intialized for
-the textarea with the "magic" CSS class. Any textarea with the "default"
-CSS class will be auto-focused on page load.
+#### Working with *textarea* element type
+
+ *  The various behaviors on textareas will be automatically intialized for
+    the textarea with the *magitext* CSS class. This CSS class is added by
+    the textarea element process handler, and is present per default.
+
+ *  Any textarea with the *default* CSS class will be auto-focused on page
+    load (if more than one have the CSS class default focused one is not
+    predictable).
+
+ *  Add *#pagedown* property and set it to *true* will add the PageDown
+    editor on the textarea (default is set to *false*).
+
+ *  Add *#magitext* property and set to *false* will disable the *magitext*
+    jQuery behavior (default is set to *true*).
+
+Since the module alters the definition of the *textarea* element this applies
+to all textareas Drupal will spawn.
+
+#### Working with *text_format* element type
+
+All the rules for the *textarea* element type are true for the *text_format*
+element type. Plus:
+
+ *  Per default all elements are altered to use the *qmarkdown* input
+    filter (forced pragmatically) and format choice is being hidden.
+
+ *  Change the value of the *#forceformat* key to *false* will disable
+    the default alteration.
+
+ *  Change the value of the *#forceformat* key to any known filter format
+    identifier will reproduce the default behavior using this filter format.
+
+#### Working with quotation
 
 For the quotation feature, you have to respect a certain amount of
 pre-requisites:
