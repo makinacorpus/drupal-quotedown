@@ -1,5 +1,5 @@
 /*jslint browser: true, todo: true, indent: 2 */
-/*global jQuery */
+/*global Drupal, jQuery */
 /**
  * Disclaimer: I am so so sorry for the name.
  */
@@ -9,7 +9,8 @@
   var
     currentActiveInput,
     idSequence = 1,
-    autoSizeEnabled = "function" === typeof $.fn.autosize;
+    autoSizeEnabled = "function" === typeof $.fn.autosize,
+    quoteButtons = [];
 
   /**
    * Provide String.trim() for older browsers
@@ -67,6 +68,33 @@
     return selectedText;
   }
 
+  /**
+   * Activate a textarea element and set it as current item
+   *
+   * Show all quote links if hidden
+   *
+   * @param DOMElement element
+   */
+  var activate = function (element) {
+    var show = false, k = 0;
+
+    if ("textarea" === element.type && element !== currentActiveInput) {
+
+      if (!currentActiveInput) {
+        show = true;
+      }
+
+      currentActiveInput = element;
+
+      // Show quote links *after* we actually set the active input
+      if (show) {
+        for (k in quoteButtons) {
+          quoteButtons[k].show();
+        }
+      }
+    }
+  };
+
   $.fn.magicTextarea = function (options) {
     var defaultClass;
 
@@ -91,17 +119,27 @@
         }
 
         $this.on("focus", function () {
-          currentActiveInput = self;
+          activate(self);
         });
 
         if (options.activate || $this.is("." + defaultClass)) {
-          currentActiveInput = self;
+          activate(self);
         }
       }
     });
   };
 
   $.fn.magicQuoteButton = function () {
+
+    if (!this.length) {
+      return;
+    }
+
+    if (!currentActiveInput) {
+      this.hide();
+    }
+    quoteButtons.push(this);
+
     this.on("click", function (ev) {
 
       var
