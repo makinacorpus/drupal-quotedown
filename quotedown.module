@@ -68,6 +68,46 @@ function quotedown_preprocess_field(&$variables) {
 function quotedown_page_build(&$page) {
   drupal_add_library('quotedown', 'jquery.magitext', true);
   drupal_add_library('quotedown', 'quotedown', true);
+  drupal_add_js(array(
+    'PageDown' => array(
+      "Locale" => quotedown_pagedown_locale_string_get(),
+    ),
+  ), 'setting');
+}
+
+/**
+ * Get localized strings for the PageDown editor.
+ *
+ * @return string[]
+ *   Keys are PageDown identifiers values are translated strings.
+ */
+function quotedown_pagedown_locale_string_get() {
+  return array(
+    'bold' => t("Strong <strong> Ctrl+B"),
+    'boldexample' => t("strong text"),
+    'italic' => t("Emphasis <em> Ctrl+I"),
+    'italicexample' => t("emphasized text"),
+    'link' => t("Hyperlink <a> Ctrl+L"),
+    'linkdescription' => t("enter link description here"),
+    'linkdialog' => t("<p><b>Insert Hyperlink</b></p><p>http://example.com/ \"optional title\"</p>"),
+    'quote' => t("Blockquote <blockquote> Ctrl+Q"),
+    'quoteexample' => t("Blockquote"),
+    'code' => t("Code Sample <pre><code> Ctrl+K"),
+    'codeexample' => t("enter code here"),
+    'image' => t("Image <img> Ctrl+G"),
+    'imagedescription' => t("enter image description here"),
+    'imagedialog' => t("<p><b>Insert Image</b></p><p>http://example.com/images/diagram.jpg \"optional title\"<br><br>Need <a href='http://www.google.com/search?q=free+image+hosting' target='_blank'>free image hosting?</a></p>"),
+    'olist' => t("Numbered List <ol> Ctrl+O"),
+    'ulist' => t("Bulleted List <ul> Ctrl+U"),
+    'litem' => t("List item"),
+    'heading' => t("Heading <h1>/<h2> Ctrl+H"),
+    'headingexample' => t("Heading"),
+    'hr' => t("Horizontal Rule <hr> Ctrl+R"),
+    'undo' => t("Undo - Ctrl+Z"),
+    'redo' => t("Redo - Ctrl+Y"),
+    'redomac' => t("Redo - Ctrl+Shift+Z"),
+    'help' => t("Markdown Editing Help"),
+  );
 }
 
 /**
@@ -235,7 +275,7 @@ function quotedown_element_process_textarea($element) {
     $element['#id'] = 'wmd-input-' . $currentId;
     $element['#postfix'] = $currentId;
     $element['#attached']['js'][] = array(
-      'data' => array('pageDown' => array($currentId)),
+      'data' => array('PageDown' => array('List' => array($currentId))),
       'type' => 'setting',
     );
     $element['#attributes']['class'][] = 'wmd-input';

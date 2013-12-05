@@ -1,16 +1,16 @@
 /*jslint browser: true, todo: true, indent: 2 */
-/*global jQuery */
-(function (document, $) {
+/*global Markdown, Drupal, jQuery */
+(function ($) {
   "use strict";
   Drupal.behaviors.quotedown = {
     attach: function (context) {
       // Attach Markdown PageDown editor.
-      var k = 0, converter, editor, postfix;
-      if (Markdown && Markdown.Editor && Drupal.settings.pageDown) {
+      var k = 0, converter, editor, postfix, options;
+      if (Markdown && Markdown.Editor && Drupal.settings.PageDown.List) {
+        Drupal.PageDown = {Instances: {}};
         converter = new Markdown.Converter();
-        Drupal.settings.pageDownEditors = {};
-        for (k in Drupal.settings.pageDown) {
-          postfix = "-" + Drupal.settings.pageDown[k];
+        for (k in Drupal.settings.PageDown.List) {
+          postfix = "-" + Drupal.settings.PageDown.List[k];
           // You know what's fun here? If we set this variable
           // after the MarkdownEditor init, some other async code
           // will run the attachBehavior() a certain amount of times
@@ -19,16 +19,20 @@
           // takes for the editor to fully init. Hence the once which
           // seems to actually have a good exclusion mecanism.
           $("#wmd-input" + postfix, context).once('pagedown', function () {
-            if (!Drupal.settings.pageDownEditors[postfix]) {
+            if (!Drupal.PageDown.Instances[postfix]) {
               try {
+                options = {};
+                if (Drupal.settings.PageDown.Locale) {
+                  options.strings = Drupal.settings.PageDown.Locale;
+                }
                 editor = new Markdown.Editor(converter, postfix);
                 editor.run();
-                Drupal.settings.pageDownEditors[postfix] = editor;
+                Drupal.PageDown.Instances[postfix] = editor;
               } catch (e) {
                 if (console && console.log) {
                   console.log("Cannot spawn Markdown.Editor, exception is: " + e);
                 }
-                Drupal.settings.pageDownEditors[postfix] = {error: true};
+                Drupal.PageDown.Instances[postfix] = {error: true};
               }
             }
           });
@@ -36,4 +40,4 @@
       }
     }
   };
-}(document, jQuery));
+}(jQuery));
