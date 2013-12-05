@@ -16,6 +16,11 @@ const QUOTEDOWN_WIDGET_PAGEDOWN = 'pagedown';
 const QUOTEDOWN_VAR_OVERRIDE_COMMENT = 'quotedown_replace_all_comment_bodies';
 
 /**
+ * QuoteDown string context for translation.
+ */
+const QUOTEDOWN_CTX = 'quotedown';
+
+/**
  * Implements hook_theme().
  */
 function quotedown_theme() {
@@ -34,7 +39,7 @@ function quotedown_comment_view_alter(&$build) {
   // Add the magic quote link, ouyé!
   $id = uniqid("quote-", true);
   $build['links']['comment']['#links']['magiquote'] = array(
-    'title'      => t("Quote"),
+    'title'      => t("Quote", array(), array('context' => QUOTEDOWN_CTX)),
     'href'       => '#',
     'html'       => false,
     'attributes' => array(
