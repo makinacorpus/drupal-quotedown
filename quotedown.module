@@ -319,6 +319,20 @@ function quotedown_field_widget_form(
 }
 
 /**
+ * Implements hook_field_widget_properties_alter().
+ */
+function quotedown_field_widget_properties_alter(&$widget, $context) {
+  if (variable_get('quotedown_replace_all_comment_bodies', false)) {
+    $field = $context['field'];
+    if (('comment' === $context['entity_type']) && ('comment_body' === $field['field_name'])) {
+      // Force our widget on all comments bodies.
+      $widget['type'] = QUOTEDOWN_WIDGET_PAGEDOWN;
+      $widget['module'] = 'quotedown';
+    }
+  }
+}
+
+/**
  * Theme a pagedown form element.
  * Slightly modified version of theme_textarea().
  */
@@ -340,19 +354,4 @@ function theme_pagedown($variables) {
   $output .= '</div>';
 
   return $output;
-}
-
-
-/**
- * Implements hook_field_widget_properties_alter().
- */
-function quotedown_field_widget_properties_alter(&$widget, $context) {
-  if (variable_get('quotedown_replace_all_comment_bodies', false)) {
-    $field = $context['field'];
-    if (('comment' === $context['entity_type']) && ('comment_body' === $field['field_name'])) {
-      // Force our widget on all comments bodies.
-      $widget['type'] = QUOTEDOWN_WIDGET_PAGEDOWN;
-      $widget['module'] = 'quotedown';
-    }
-  }
 }
