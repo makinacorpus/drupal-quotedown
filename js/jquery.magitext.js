@@ -203,8 +203,14 @@
 
   Drupal.behaviors.magiText = {
     attach: function (context) {
-      $("textarea.magitext", context).once('magitext').magicTextarea();
+      var textarea;
+      textarea = $("textarea.magitext", context);
+      textarea.once('magitext').magicTextarea();
       $(".magiquote", context).once('magitext').magicQuoteButton();
+      // Activate at least one textare to show quote links
+      if (!currentActiveInput && textarea.length) {
+        activate(textarea.get(0));
+      }
     }
   };
 

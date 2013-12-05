@@ -28,26 +28,53 @@ function quotedown_theme() {
 }
 
 /**
+ * Build an arbitrary quote link.
+ *
+ * @param string $id
+ *   Target CSS identifier.
+ * @param string $title
+ *   Title if different from "Quote".
+ *
+ * @return array
+ *   Link array.
+ */
+function quotedown_quote_link_build($id, $title = null) {
+  if (!$title) {
+    $title = t("Quote", array(), array('context' => QUOTEDOWN_CTX));
+  }
+  return array(
+    'title'      => $title,
+    'href'       => '#',
+    'html'       => false,
+    'attributes' => array('class' => array('magiquote'), 'rel'   => $id),
+  );
+}
+
+/**
+ * Implements hook_node_view_alter().
+ */
+function quotedown_node_view_alter(&$build) {
+  // Add the magic quote link, ouyé!
+  $id = uniqid("quote-", true);
+  $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id);
+  // Suboptimal I sure hope the account is preloaded elsewhere.
+  $account = user_load($build['#node']->uid);
+  $date = $build['#node']->created;
+  $build['body']['#attributes']['id'] = $id;
+  // Title will serve for JS to put a header before quote.
+  $build['body']['#attributes']['title'] = t("On @date, @account said", array(
+    '@date'    => format_date($date),
+    '@account' => format_username($account),
+  ));
+}
+
+/**
  * Implements hook_comment_view_alter().
  */
 function quotedown_comment_view_alter(&$build) {
-
-  // There is somewhere in Drupal ecosystem a "quote" module.
-  // Just remove it from there.
-  unset($build['links']['quote']);
-
   // Add the magic quote link, ouyé!
   $id = uniqid("quote-", true);
-  $build['links']['comment']['#links']['magiquote'] = array(
-    'title'      => t("Quote", array(), array('context' => QUOTEDOWN_CTX)),
-    'href'       => '#',
-    'html'       => false,
-    'attributes' => array(
-      'class' => array('magiquote'),
-      'rel'   => $id,
-    ),
-  );
-
+  $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id);
   // Suboptimal I sure hope the account is preloaded elsewhere.
   $account = user_load($build['#comment']->uid);
   $date = $build['#comment']->created;
@@ -63,6 +90,8 @@ function quotedown_comment_view_alter(&$build) {
  * Implements hook_preprocess_HOOK().
  */
 function quotedown_preprocess_field(&$variables) {
+  // Attributes you might set on a field render array will not be propagated
+  // to the template per default: this actually forces it.
   if (!empty($variables['element']['#attributes'])) {
     if (empty($variables['attributes_array'])) {
       $variables['attributes_array'] = $variables['element']['#attributes'];
