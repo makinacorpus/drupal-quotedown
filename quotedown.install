@@ -25,10 +25,10 @@ function quotedown_install_filter($permissions = false) {
         'settings' => array(),
         'weight'   => -20,
       ),
-      'allowed_html' => array(
+      'filter_html' => array(
         'status'   => 1,
         'settings' => array(
-          'filter_html' => "<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <img> <del> <p> <br> <h1> <h2> <h3> <h4> <h5> <h6> <table> <td> <tr> <th> <thead> <tbody> <pre> <div>",
+          'allowed_html' => "<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <img> <del> <p> <br> <h1> <h2> <h3> <h4> <h5> <h6> <table> <td> <tr> <th> <thead> <tbody> <pre> <div>",
         ),
         'weight'   => -10,
       ),
@@ -71,5 +71,12 @@ function quotedown_install() {
  * Adds some forgotten HTML tags breaking HTML rendering of Markdown.
  */
 function quotedown_update_7002() {
+  quotedown_install_filter();
+}
+
+/**
+ * Inversion of some parameters on last update.
+ */
+function quotedown_update_7003() {
   quotedown_install_filter();
 }
