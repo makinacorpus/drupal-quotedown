@@ -68,13 +68,14 @@ function quotedown_install() {
 }
 
 /**
- * Adds some forgotten HTML tags breaking HTML rendering of Markdown.
+ * Implements hook_update_last_removed().
  */
-function quotedown_update_7002() {
-  quotedown_install_filter();
+function quotedown_update_last_removed() {
+  return 7002;
 }
 
 /**
+ * Adds some forgotten HTML tags breaking HTML rendering of Markdown.
  * Inversion of some parameters on last update.
  */
 function quotedown_update_7003() {
