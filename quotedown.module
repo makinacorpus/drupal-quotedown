@@ -11,6 +11,11 @@
 const QUOTEDOWN_WIDGET_PAGEDOWN = 'pagedown';
 
 /**
+ * Force comment bodies to use PageDown variable name.
+ */
+const QUOTEDOWN_VAR_OVERRIDE_COMMENT = 'quotedown_replace_all_comment_bodies';
+
+/**
  * Implements hook_theme().
  */
 function quotedown_theme() {
@@ -322,7 +327,7 @@ function quotedown_field_widget_form(
  * Implements hook_field_widget_properties_alter().
  */
 function quotedown_field_widget_properties_alter(&$widget, $context) {
-  if (variable_get('quotedown_replace_all_comment_bodies', false)) {
+  if (variable_get(QUOTEDOWN_VAR_OVERRIDE_COMMENT, false)) {
     $field = $context['field'];
     if (('comment' === $context['entity_type']) && ('comment_body' === $field['field_name'])) {
       // Force our widget on all comments bodies.
