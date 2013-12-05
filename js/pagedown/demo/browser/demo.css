@@ -157,4 +157,5 @@ blockquote {
     box-sizing: border-box;
     background: transparent;
     width: 100%;
+    height: auto;
 }

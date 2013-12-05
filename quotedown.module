@@ -265,7 +265,7 @@ function quotedown_element_process_textarea($element) {
   static $id = 0;
 
   if ($element['#magitext']) {
-    $element['#rows'] = 2;
+    $element['#rows'] = 3;
     $element['#resizable'] = false;
     $element['#attributes']['class'][] = "magitext";
   }
