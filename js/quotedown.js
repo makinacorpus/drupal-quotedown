@@ -25,7 +25,7 @@
                 if (Drupal.settings.PageDown.Locale) {
                   options.strings = Drupal.settings.PageDown.Locale;
                 }
-                editor = new Markdown.Editor(converter, postfix);
+                editor = new Markdown.Editor(converter, postfix, options);
                 editor.run();
                 Drupal.PageDown.Instances[postfix] = editor;
               } catch (e) {
