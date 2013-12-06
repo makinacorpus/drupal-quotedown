@@ -40,7 +40,7 @@ function quotedown_theme() {
  */
 function quotedown_quote_link_build($id, $title = null) {
   if (!$title) {
-    $title = t("Quote", array(), array('context' => QUOTEDOWN_CTX));
+    $title = t("quote", array(), array('context' => QUOTEDOWN_CTX));
   }
   return array(
     'title'      => $title,
