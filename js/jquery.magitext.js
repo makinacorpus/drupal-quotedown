@@ -287,7 +287,7 @@
             cid = this.attributes["data-cid"].value;
           }
 
-          focusTo(input, { pid: cid }, "comment-" + cid);
+          focusTo(input, { pid: cid }, (cid ? "comment-" + cid : element.id));
         }
       }
     });
