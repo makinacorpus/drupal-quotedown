@@ -38,15 +38,19 @@ function quotedown_theme() {
  * @return array
  *   Link array.
  */
-function quotedown_quote_link_build($id, $title = null) {
+function quotedown_quote_link_build($id, $title = null, $cid = null) {
   if (!$title) {
     $title = t("quote", array(), array('context' => QUOTEDOWN_CTX));
   }
   return array(
-    'title'      => $title,
-    'href'       => '#',
-    'html'       => false,
-    'attributes' => array('class' => array('magiquote'), 'rel'   => $id),
+    'title' => $title,
+    'href'  => '#',
+    'html'  => false,
+    'attributes' => array(
+      'class' => array('magiquote'),
+      'data-cid' => $cid,
+      'data-target' => $id,
+    ),
   );
 }
 
@@ -54,7 +58,6 @@ function quotedown_quote_link_build($id, $title = null) {
  * Implements hook_node_view_alter().
  */
 function quotedown_node_view_alter(&$build) {
-  // Add the magic quote link, ouyé!
   $id = uniqid("quote-", true);
   $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id);
   // Suboptimal I sure hope the account is preloaded elsewhere.
@@ -62,28 +65,37 @@ function quotedown_node_view_alter(&$build) {
   $date = $build['#node']->created;
   $build['body']['#attributes']['id'] = $id;
   // Title will serve for JS to put a header before quote.
-  $build['body']['#attributes']['title'] = t("On @date, @account said", array(
-    '@date'    => format_date($date),
-    '@account' => format_username($account),
-  ));
+  $build['body']['#attributes']['title'] = t("On @date, @account said", array('@date' => format_date($date), '@account' => format_username($account)));
 }
 
 /**
  * Implements hook_comment_view_alter().
  */
 function quotedown_comment_view_alter(&$build) {
-  // Add the magic quote link, ouyé!
-  $id = uniqid("quote-", true);
-  $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id);
+  $cid = $build['#comment']->cid;
+  $id = "quote-" . $cid;
+  $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id, null, $cid);
+  $build['links']['comment']['#links']['comment-reply']['attributes']['data-cid'] = $cid;
+  $build['links']['comment']['#links']['comment-reply']['attributes']['class'][] = 'magireply';
   // Suboptimal I sure hope the account is preloaded elsewhere.
   $account = user_load($build['#comment']->uid);
   $date = $build['#comment']->created;
   $build['comment_body']['#attributes']['id'] = $id;
   // Title will serve for JS to put a header before quote.
-  $build['comment_body']['#attributes']['title'] = t("On @date, @account said", array(
-    '@date'    => format_date($date),
-    '@account' => format_username($account),
-  ));
+  $build['comment_body']['#attributes']['title'] = t("On @date, @account said", array('@date' => format_date($date), '@account' => format_username($account)));
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function quotedown_form_comment_form_alter(&$form, &$form_state) {
+  // Just change 'pid' field from value to hidden.
+  $form['pid'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $form['pid']['#value'],
+  );
+  unset($form['pid']['#value']);
+  $form['actions']['preview']['#access'] = false;
 }
 
 /**
@@ -195,6 +207,9 @@ function quotedown_library() {
       'website' => "http://github.com/makinacorpus/drupal-quotedown",
       'js' => array(
         $path . '/jquery.magitext.js' => $opts,
+      ),
+      'css' => array(
+        $path . '/jquery.magitext.css' => $opts,
       ),
       'dependencies' => array(
         array('quotedown', 'jquery.autosize'),

@@ -10,7 +10,32 @@
     currentActiveInput,
     idSequence = 1,
     autoSizeEnabled = "function" === typeof $.fn.autosize,
-    quoteButtons = [];
+    quoteButtons = [],
+    replyButtons = [],
+    InputList = [],
+    Input,
+    activate,
+    focusTo,
+    findInput;
+
+  /**
+   * Build a textarea wrapper
+   */
+  Input = function Input (element) {
+    var $target = $(element), backTo;
+    this.target = element;
+    this.$form = $(this.target).parents('form');
+    if (!this.target.id) {
+      this.target.id = "input-" + (idSequence++);
+      this.id = this.target.id;
+    }
+    this.$backTo = $("<a class=\"back-to\" href=\"#\">Go back</a>");
+    this.$backTo.on("click", function (ev) {
+      $(this).hide();
+    });
+    $target.after(this.$backTo);
+    $target.parent().addClass("back-to-wrapper");
+  };
 
   /**
    * Provide String.trim() for older browsers
@@ -73,62 +98,129 @@
    *
    * Show all quote links if hidden
    *
-   * @param DOMElement element
+   * @param Input element
    */
-  var activate = function (element) {
+  activate = function (input) {
     var show = false, k = 0;
-
-    if ("textarea" === element.type && element !== currentActiveInput) {
-
+    if (input !== currentActiveInput) {
       if (!currentActiveInput) {
         show = true;
       }
-
-      currentActiveInput = element;
-
+      currentActiveInput = input;
       // Show quote links *after* we actually set the active input
       if (show) {
         for (k in quoteButtons) {
           quoteButtons[k].show();
         }
+        for (k in replyButtons) {
+          replyButtons[k].show();
+        }
       }
     }
   };
 
+  /**
+   * Move viewport to
+   */
+  moveTo = function (id) {
+    var $e = $("#" + id);
+    if ($e.length) {
+      $('html,body').animate({
+        scrollTop: $hash.first().offset().top
+      }, 200);
+    }
+  };
+
+  /**
+   * Find input in list
+   */
+  findInput = function (id) {
+    var k = 0;
+    for (k in InputList) {
+      if (id === InputList[k].id) {
+        return InputList[k];
+      }
+    }
+    throw "Could not find input with id " + id;
+  };
+
+  /**
+   * Prepare textarea form
+   *
+   * @param string|Input id
+   * @param Object data
+   * @param string backToId
+   */
+  focusTo = function (input, data, backToId) {
+    var k = 0, $cur, $hash;
+
+    if (!input instanceof Input) {
+      input = findInput(input);
+    }
+
+    // Update form data if necessary 
+    if (data && data.length && input.$form.length) {
+      for (k in data) {
+        $cur = input.$form.find("input[name=" + k + "]")
+        if ($cur.length) {
+          $cur.val(data[k]);
+        }
+      }
+    }
+
+    if (backToId) {
+      input.$backTo.attr("href", "#" + backToId); 
+      input.$backTo.css({display: "block"});
+    } else {
+      input.$backTo.hide();
+    }
+
+    // Expand textarea and focus it, also move the viewport to it
+    $(input.target).trigger('autosize.resize');
+
+    if (input.id) {
+      window.location.hash = input.id;
+    }
+    input.target.focus();
+  };
+
+  /**
+   * Textarea behavior
+   */
   $.fn.magicTextarea = function (options) {
-    var defaultClass;
 
     options = options || {};
-
-    defaultClass = options.defaultClass || "default";
+    if (!options.defaultClass) {
+      options.defaultClass = "default";
+    }
 
     this.each(function () {
       if ("textarea" === this.type) {
 
         var
-          $this = $(this),
-          self = this;
+          input = new Input(this),
+          $target = $(input.target);
+
+        InputList.push(input);
 
         // Initialize the jQuery.autosize() plugin if present
         if (autoSizeEnabled) {
-          $this.autosize();
+          $target.autosize();
         }
 
-        if (!this.id) {
-          this.id = "input-" + (idSequence++);
-        }
-
-        $this.on("focus", function () {
-          activate(self);
+        $target.on("focus", function () {
+          activate(input);
         });
-
-        if (options.activate || $this.is("." + defaultClass)) {
-          activate(self);
+        if (options.activate || $target.is("." + options.defaultClass)) {
+          activate(input);
         }
       }
     });
   };
 
+  /**
+   * Quote button behavior
+   */
   $.fn.magicQuoteButton = function () {
 
     if (!this.length) {
@@ -150,13 +242,14 @@
         k = 0,
         p = false,
         title = "",
-        target = currentActiveInput;
+        input = currentActiveInput,
+        cid = "";
 
       ev.preventDefault();
       ev.stopPropagation();
 
-      if (target && this.attributes.rel) {
-        element = document.getElementById(this.attributes.rel.value);
+      if (input && this.attributes["data-target"]) {
+        element = document.getElementById(this.attributes["data-target"].value);
         if (element) {
 
           content = getSelectedTextWithin(element).trim();
@@ -184,32 +277,62 @@
           }
 
           // Append all the things!
-          if ("" === target.value) {
-            target.value = title + clean.join("\n") + "\n\n";
+          if ("" === input.target.value) {
+            input.target.value = title + clean.join("\n") + "\n\n";
           } else {
-            target.value = target.value + "\n\n" + title + clean.join("\n") + "\n\n";
+            input.target.value = input.target.value + "\n\n" + title + clean.join("\n") + "\n\n";
           }
 
-          // Expand textarea and focus it, also move the viewport to it
-          $(target).trigger('autosize.resize');
-          if (target.id) {
-            window.location.hash = target.id;
+          if (this.attributes["data-cid"]) {
+            cid = this.attributes["data-cid"].value;
           }
-          target.focus();
+
+          focusTo(input, { pid: cid }, "comment-" + cid);
         }
       }
     });
   };
 
+  /**
+   * Reply button behavior
+   */
+  $.fn.magicReplyButton = function () {
+
+    if (!this.length) {
+      return;
+    }
+
+    if (!currentActiveInput) {
+      this.hide();
+    }
+    replyButtons.push(this);
+
+    this.on("click", function (ev) {
+      var cid, input = currentActiveInput;
+
+      if (input && this.attributes["data-cid"]) {
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        cid = this.attributes["data-cid"].value;
+
+        focusTo(input, { pid: cid }, "comment-" + cid);
+      }
+    });
+  };
+
+  /**
+   * Drupal behavior
+   */
   Drupal.behaviors.magiText = {
     attach: function (context) {
-      var textarea;
-      textarea = $("textarea.magitext", context);
-      textarea.once('magitext').magicTextarea();
+      $("textarea.magitext", context).once('magitext').magicTextarea();
       $(".magiquote", context).once('magitext').magicQuoteButton();
+      $(".magireply", context).once('magitext').magicReplyButton();
       // Activate at least one textare to show quote links
-      if (!currentActiveInput && textarea.length) {
-        activate(textarea.get(0));
+      if (!currentActiveInput && InputList.length) {
+        activate(InputList[0]);
       }
     }
   };
