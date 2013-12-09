@@ -26,6 +26,13 @@
                   options.strings = Drupal.settings.PageDown.Locale;
                 }
                 editor = new Markdown.Editor(converter, postfix, options);
+                editor.hooks.chain("onPreviewRefresh", function () {
+                  // We don't really have better place to do this, so let's
+                  // use this hook.
+                  setTimeout(function () {
+                    $("#wmd-input" + postfix).trigger("autosize.resize");
+                  }, 0);
+                });
                 editor.run();
                 Drupal.PageDown.Instances[postfix] = editor;
               } catch (e) {
