@@ -293,7 +293,7 @@ function quotedown_element_info_alter(&$type) {
  * Preprocesses 'text_format' elements.
  */
 function quotedown_element_preprocess_text_format($element) {
-  if (!empty($element['#forceformat'])) {
+  if ($element['#pagedown'] && !empty($element['#forceformat'])) {
     $element['#format'] = $element['#forceformat'];
   }
   return $element;
