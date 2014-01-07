@@ -63,7 +63,7 @@ function quotedown_quote_link_build($id, $title = null, $cid = null) {
  * Implements hook_node_view_alter().
  */
 function quotedown_node_view_alter(&$build) {
-  if (COMMENT_NODE_OPEN != $build['#node']->comment || in_array($build['#node']->type, variable_get(QUOTEDOWN_VAR_DISABLED_NODE_TYPE))) {
+  if (COMMENT_NODE_OPEN != $build['#node']->comment || in_array($build['#node']->type, variable_get(QUOTEDOWN_VAR_DISABLED_NODE_TYPE, array()))) {
     return;
   }
   $id = uniqid("quote-", true);
