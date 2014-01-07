@@ -16,6 +16,11 @@ const QUOTEDOWN_WIDGET_PAGEDOWN = 'pagedown';
 const QUOTEDOWN_VAR_OVERRIDE_COMMENT = 'quotedown_replace_all_comment_bodies';
 
 /**
+ * Disabled node types variable name.
+ */
+const QUOTEDOWN_VAR_DISABLED_NODE_TYPE = 'quotedown_disabled_node_types';
+
+/**
  * QuoteDown string context for translation.
  */
 const QUOTEDOWN_CTX = 'quotedown';
@@ -58,6 +63,9 @@ function quotedown_quote_link_build($id, $title = null, $cid = null) {
  * Implements hook_node_view_alter().
  */
 function quotedown_node_view_alter(&$build) {
+  if (COMMENT_NODE_OPEN != $build['#node']->comment || in_array($build['#node']->type, variable_get(QUOTEDOWN_VAR_DISABLED_NODE_TYPE))) {
+    return;
+  }
   $id = uniqid("quote-", true);
   $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id);
   // Suboptimal I sure hope the account is preloaded elsewhere.
