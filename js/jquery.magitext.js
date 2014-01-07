@@ -16,6 +16,7 @@
     Input,
     activate,
     focusTo,
+    moveTo,
     findInput;
 
   /**
