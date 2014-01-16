@@ -98,10 +98,7 @@ function quotedown_comment_view_alter(&$build) {
  */
 function quotedown_form_comment_form_alter(&$form, &$form_state) {
   // Just change 'pid' field from value to hidden.
-  $form['pid'] = array(
-    '#type' => 'hidden',
-    '#default_value' => $form['pid']['#value'],
-  );
+  $form['pid'] = array('#type' => 'hidden', '#default_value' => $form['pid']['#value']);
   unset($form['pid']['#value']);
   $form['actions']['preview']['#access'] = false;
 }
