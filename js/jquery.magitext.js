@@ -23,7 +23,7 @@
    * Build a textarea wrapper
    */
   Input = function Input (element) {
-    var $target = $(element), backTo;
+    var $target = $(element);
     this.target = element;
     this.$form = $(this.target).parents('form');
     if (!this.target.id) {
@@ -50,20 +50,34 @@
   /**
    * Get selected text within the given element boundaries
    *
-   * This code belong to its author and was found on Stack Overflow.
-   * Huge thanks to him; See http://stackoverflow.com/a/5801903/552405
+   * This code belong to its authors and was found on Stack Overflow.
+   * Huge thanks to them; See:
+   *   http://stackoverflow.com/a/5801903/552405
+   * Modified this function in order to add sugar candy from:
+   *   http://stackoverflow.com/a/4652824/552405
+   * Which actually allows to keep some kind of formatting there!
    *
    * @param DOMElement element
    *
    * @return String
    */
-  function getSelectedTextWithin(el) {
-    var selectedText = "";
-    if (typeof window.getSelection !== "undefined") {
-      var sel = window.getSelection(), rangeCount;
-      if ( (rangeCount = sel.rangeCount) > 0 ) {
+  function getSelectedTextWithin(el, html) {
+
+    var selectedText, container, sel, rangeCount, i = 0, selRange, selTextRange, textRange;
+
+    if (undefined !== window.getSelection) {
+      sel = window.getSelection();
+
+      if (html) {
+        container = document.createElement("div");
+      } else {
+        selectedText = "";
+      }
+
+      rangeCount = sel.rangeCount;
+      if (rangeCount > 0) {
         var range = document.createRange();
-        for (var i = 0, selRange; i < rangeCount; ++i) {
+        for (i = 0; i < rangeCount; ++i) {
           range.selectNodeContents(el);
           selRange = sel.getRangeAt(i);
           if (selRange.compareBoundaryPoints(range.START_TO_END, range) == 1 && selRange.compareBoundaryPoints(range.END_TO_START, range) == -1) {
@@ -73,13 +87,23 @@
             if (selRange.compareBoundaryPoints(range.END_TO_END, range) == -1) {
               range.setEnd(selRange.endContainer, selRange.endOffset);
             }
-            selectedText += range.toString();
+
+            if (html) {
+              container.appendChild(range.cloneContents());
+            } else {
+              selectedText += range.toString();
+            }
           }
         }
       }
-    } else if (typeof document.selection != "undefined" && document.selection.type == "Text") {
-      var selTextRange = document.selection.createRange();
-      var textRange = selTextRange.duplicate();
+
+      if (html) {
+        selectedText = container.innerHTML;
+      }
+
+    } else if (undefined !== document.selection && "Text" === document.selection.type) {
+      selTextRange = document.selection.createRange();
+      textRange = selTextRange.duplicate();
       textRange.moveToElementText(el);
       if (selTextRange.compareEndPoints("EndToStart", textRange) == 1 && selTextRange.compareEndPoints("StartToEnd", textRange) == -1) {
         if (selTextRange.compareEndPoints("StartToStart", textRange) == 1) {
@@ -88,10 +112,32 @@
         if (selTextRange.compareEndPoints("EndToEnd", textRange) == -1) {
           textRange.setEndPoint("EndToEnd", selTextRange);
         }
-        selectedText = textRange.text;
+        if (html) {
+          selectedText = textRange.htmlText;
+        } else {
+          selectedText = textRange.text;
+        }
       }
     }
+
     return selectedText;
+  }
+
+  /**
+   * Cleanup up input text and attempt to break lines in a smart way
+   *
+   * @param String text
+   *
+   * @return String[]
+   */
+  function textToBlockquote(text) {
+    return "> " + text
+      .replace(/<\/p>/g, "\n\n")
+      .replace(/<(\/div|br\/)>/g, "\n")
+      .replace(/<(?:.|\n)*?>/gm, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+      .replace(/\n/g, "\n> ");
   }
 
   /**
@@ -160,9 +206,9 @@
     }
 
     // Update form data if necessary 
-    if (data && data.length && input.$form.length) {
+    if (data && input.$form.length) {
       for (k in data) {
-        $cur = input.$form.find("input[name=" + k + "]")
+        $cur = input.$form.find("input[name=" + k + "]");
         if ($cur.length) {
           $cur.val(data[k]);
         }
@@ -237,11 +283,8 @@
 
       var
         element,
-        lines,
-        clean = [],
+        clean,
         content,
-        k = 0,
-        p = false,
         title = "",
         input = currentActiveInput,
         cid = "";
@@ -253,24 +296,12 @@
         element = document.getElementById(this.attributes["data-target"].value);
         if (element) {
 
-          content = getSelectedTextWithin(element).trim();
+          content = getSelectedTextWithin(element, true).trim();
           if (!content) {
-            content = element.textContent.trim();
+            content = element.innerHTML.trim();
           }
 
-          // Proceed to input cleanup (remove empty lines and trim others)
-          lines = content.split("\n");
-          for (k in lines) {
-            if (/^\s*$/.test(lines[k])) {
-              if (p) {
-                continue; // Skip empty lines only when previous is not
-              }
-              p = true;
-            } else {
-              p = false;
-            }
-            clean.push("> " + lines[k].trim());
-          }
+          clean = textToBlockquote(content);
 
           // Compute title
           if (element.attributes.title && "" !== element.attributes.title.value) {
@@ -279,9 +310,9 @@
 
           // Append all the things!
           if ("" === input.target.value) {
-            input.target.value = title + clean.join("\n") + "\n\n";
+            input.target.value = title + clean + "\n\n";
           } else {
-            input.target.value = input.target.value + "\n\n" + title + clean.join("\n") + "\n\n";
+            input.target.value = input.target.value + "\n\n" + title + clean + "\n\n";
           }
 
           if (this.attributes["data-cid"]) {
