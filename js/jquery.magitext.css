@@ -14,3 +14,15 @@
     z-index: 1000;
     right: -44px;
 }
+
+/**
+ * Security: when you do a subception or a supception each item will
+ * inherit of a font-size such as 80% or 90% of its parent. Doing a
+ * *ception here would cause the size to drop down until it reaches
+ * less than 6px; Once you reach this size most browsers will drop the
+ * size to 0px which will hide the text and allow the user to put non
+ * visible content, such as either one of viagra advertisement or
+ * malicious code in a code block area (copy/paste attack). This one
+ * liner will avoid text to be hidden and fix this.
+ */
+sup sup sup sup, sub sub sub { font-size:100% }
