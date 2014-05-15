@@ -73,7 +73,7 @@ function quotedown_node_view_alter(&$build) {
   $date = $build['#node']->created;
   $build['body']['#attributes']['id'] = $id;
   // Title will serve for JS to put a header before quote.
-  $build['body']['#attributes']['title'] = t("On @date, @account said", array('@date' => format_date($date), '@account' => format_username($account)));
+  $build['body']['#attributes']['data-title'] = t("On @date, @account said", array('@date' => format_date($date), '@account' => format_username($account)));
 }
 
 /**
@@ -90,7 +90,7 @@ function quotedown_comment_view_alter(&$build) {
   $date = $build['#comment']->created;
   $build['comment_body']['#attributes']['id'] = $id;
   // Title will serve for JS to put a header before quote.
-  $build['comment_body']['#attributes']['title'] = t("On @date, @account said", array('@date' => format_date($date), '@account' => format_username($account)));
+  $build['comment_body']['#attributes']['data-title'] = t("On @date, @account said", array('@date' => format_date($date), '@account' => format_username($account)));
 }
 
 /**

@@ -304,8 +304,8 @@
           clean = textToBlockquote(content);
 
           // Compute title
-          if (element.attributes.title && "" !== element.attributes.title.value) {
-            title = "**" + element.attributes.title.value  + " :**\n";
+          if (element.attributes["data-title"] && "" !== element.attributes["data-title"].value) {
+            title = "**" + element.attributes["data-title"].value  + " :**\n";
           }
 
           // Append all the things!
