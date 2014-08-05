@@ -43,7 +43,7 @@ function quotedown_theme() {
  * @return array
  *   Link array.
  */
-function quotedown_quote_link_build($id, $title = null, $cid = null) {
+function quotedown_quote_link_build($id, $title = null, $cid = null, $inputKey = null) {
   if (!$title) {
     $title = t("quote", array(), array('context' => QUOTEDOWN_CTX));
   }
@@ -55,6 +55,7 @@ function quotedown_quote_link_build($id, $title = null, $cid = null) {
       'class' => array('magiquote'),
       'data-cid' => $cid,
       'data-target' => $id,
+      'data-input' => $inputKey,
     ),
   );
 }
@@ -82,7 +83,7 @@ function quotedown_node_view_alter(&$build) {
 function quotedown_comment_view_alter(&$build) {
   $cid = $build['#comment']->cid;
   $id = "quote-" . $cid;
-  $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id, null, $cid);
+  $build['links']['comment']['#links']['magiquote'] = quotedown_quote_link_build($id, null, $cid, 'comment-' . $build['#comment']->nid);
   $build['links']['comment']['#links']['comment-reply']['attributes']['data-cid'] = $cid;
   $build['links']['comment']['#links']['comment-reply']['attributes']['class'][] = 'magireply';
   // Suboptimal I sure hope the account is preloaded elsewhere.
@@ -101,6 +102,7 @@ function quotedown_form_comment_form_alter(&$form, &$form_state) {
   $form['pid'] = array('#type' => 'hidden', '#default_value' => $form['pid']['#value']);
   unset($form['pid']['#value']);
   $form['actions']['preview']['#access'] = false;
+  $form['comment_body'][LANGUAGE_NONE][0]['#attributes']['data-input'] = 'comment-' . $form['#node']->nid;
 }
 
 /**

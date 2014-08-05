@@ -1,5 +1,6 @@
 /*jslint browser: true, todo: true, indent: 2 */
 /*global Drupal, jQuery */
+
 /**
  * Disclaimer: I am so so sorry for the name.
  */
@@ -28,8 +29,13 @@
     this.$form = $(this.target).parents('form');
     if (!this.target.id) {
       this.target.id = "input-" + (idSequence++);
-      this.id = this.target.id;
     }
+    if (element.attributes["data-input"]) {
+      this.inputId = element.attributes["data-input"].value;
+    } else {
+      this.inputId = this.target.id;
+    }
+    this.id = this.target.id;
     this.$backTo = $("<a class=\"back-to\" href=\"#\">Go back</a>");
     this.$backTo.on("click", function (ev) {
       $(this).hide();
@@ -146,6 +152,8 @@
    * Show all quote links if hidden
    *
    * @param Input element
+   *
+   * @return Input
    */
   activate = function (input) {
     var show = false, k = 0;
@@ -164,6 +172,7 @@
         }
       }
     }
+    return currentActiveInput;
   };
 
   /**
@@ -184,7 +193,7 @@
   findInput = function (id) {
     var k = 0;
     for (k in InputList) {
-      if (id === InputList[k].id) {
+      if (id === InputList[k].id || id === InputList[k].inputId) {
         return InputList[k];
       }
     }
@@ -286,15 +295,31 @@
         clean,
         content,
         title = "",
-        input = currentActiveInput,
+        input,
         cid = "";
 
       ev.preventDefault();
       ev.stopPropagation();
 
-      if (input && this.attributes["data-target"]) {
+      if (this.attributes["data-target"]) {
         element = document.getElementById(this.attributes["data-target"].value);
         if (element) {
+
+          // For some reasons we sometime have a lot of textareas in the
+          // page and want to force quote to go in a single one depending
+          // on the quote button clicked; This implements this feature and
+          // leave it optional.
+          if (this.attributes["data-input"]) {
+            try {
+              input = activate(findInput(this.attributes["data-input"].value));
+            } catch (error) {
+              input = currentActiveInput;
+            }
+          }
+
+          if (!input) {
+            return;
+          }
 
           content = getSelectedTextWithin(element, true).trim();
           if (!content) {
