@@ -69,7 +69,7 @@
    */
   function getSelectedTextWithin(el, html) {
 
-    var selectedText, container, sel, rangeCount, i = 0, selRange, selTextRange, textRange;
+    var selectedText = '', container, sel, rangeCount, i = 0, selRange, selTextRange, textRange;
 
     if (undefined !== window.getSelection) {
       sel = window.getSelection();
