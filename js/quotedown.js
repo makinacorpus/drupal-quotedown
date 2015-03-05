@@ -6,7 +6,7 @@
     attach: function (context) {
       // Attach Markdown PageDown editor.
       var k = 0, converter, editor, postfix, options;
-      if (Markdown && Markdown.Editor && Drupal.settings.PageDown.List) {
+      if (Markdown && Markdown.Editor && Drupal.settings.PageDown && Drupal.settings.PageDown.List) {
         Drupal.PageDown = {Instances: {}};
         converter = new Markdown.Converter();
         for (k in Drupal.settings.PageDown.List) {
