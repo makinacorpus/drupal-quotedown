@@ -64,7 +64,12 @@ function quotedown_quote_link_build($id, $title = null, $cid = null, $inputKey =
  * Implements hook_node_view_alter().
  */
 function quotedown_node_view_alter(&$build) {
-  if (COMMENT_NODE_OPEN != $build['#node']->comment || in_array($build['#node']->type, variable_get(QUOTEDOWN_VAR_DISABLED_NODE_TYPE, array())) || empty($build['comments'])) {
+  if (module_exists('comment')) {
+    if (COMMENT_NODE_OPEN != $build['#node']->comment) {
+      return;
+    }
+  }
+  if (in_array($build['#node']->type, variable_get(QUOTEDOWN_VAR_DISABLED_NODE_TYPE, array())) || empty($build['comments'])) {
     return;
   }
   $id = uniqid("quote-", true);
