@@ -316,8 +316,7 @@ function quotedown_element_preprocess_text_format($element) {
  */
 function quotedown_element_process_text_format($element) {
   if ($element['#pagedown'] && !empty($element['#forceformat'])) {
-    $element['format']['format']['#access'] = false;
-    $element['format']['guidelines']['#access'] = false;
+    $element['format']['#access'] = false;
   }
   $element['value']['#pagedown'] = $element['#pagedown'];
   $element['value']['#magitext'] = $element['#magitext'];
@@ -338,6 +337,7 @@ function quotedown_element_process_textarea($element) {
 
   if ($element['#pagedown']) {
     $currentId = ++$id;
+    $element['#rows'] = 5;
     $element['#id'] = 'wmd-input-' . $currentId;
     $element['#postfix'] = $currentId;
     $element['#attached']['js'][] = array(
