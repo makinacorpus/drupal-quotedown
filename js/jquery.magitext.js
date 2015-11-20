@@ -36,7 +36,7 @@
       this.inputId = this.target.id;
     }
     this.id = this.target.id;
-    this.$backTo = $("<a class=\"back-to\" href=\"#\">Go back</a>");
+    this.$backTo = $("<a class=\"back-to\" style=\"display: none;\" href=\"#\">Go back</a>");
     this.$backTo.on("click", function (ev) {
       $(this).hide();
     });
